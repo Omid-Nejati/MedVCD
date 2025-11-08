@@ -1,4 +1,4 @@
-name: halc
+name: medvcd
 channels:
   - pytorch
   - defaults
