@@ -2,7 +2,7 @@ from vis_corrector import Corrector
 from types import SimpleNamespace
 import argparse
 import json
-os.environ["OPENAI_API_KEY"] = "sk-..."
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Code for 'Woodpecker: Hallucination Correction for MLLMs Hallucination Correction for MLLMs'.")

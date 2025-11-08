@@ -20,7 +20,7 @@ sys.path.append(".")
 
 # define pre-trained model download path by setting the environment variable
 os.environ["TRANSFORMERS_CACHE"] = "./model_checkpoints/"
-os.environ["OPENAI_API_KEY"] = "sk-..."
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 import transformers
 
 
