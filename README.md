@@ -1,7 +1,6 @@
-<<<<<<< HEAD
+
 # MedVCD
 =======
-#  VASparse: Towards Efficient Visual Hallucination Mitigation via Visual-Aware Token Sparsification
 
 <p align="center" width="100%">
 <a target="_blank"><img src="figs/results.png" alt="VRAL" style="width: 80%; min-width: 200px; display: block; margin: auto;"></a>
@@ -10,11 +9,6 @@
 <a target="_blank"><img src="figs/frameworks.png" alt="VRAL" style="width: 80%; min-width: 200px; display: block; margin: auto;"></a>
 </p>
 
-**TODO**
-
-- [x] Publishing our paper " [VASparse: Towards Efficient Visual Hallucination Mitigation via Visual-Aware Token Sparsification"](https://arxiv.org/abs/2501.06553)
-- [x] Publishing the code of our VASparse for reference.
-- [ ] More clean and complete code is continuously being updated.
 
 
 ## Installation
@@ -47,7 +41,7 @@ wget -q https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-
 
 ## LVLM Backbones
 
-The following evaluation requires for MSCOCO 2014 dataset. Please download [here](https://cocodataset.org/#home) and extract it in your data path.
+The following evaluation requires for MedHEval dataset. Please download [here](https://github.com/Aofei-Chang/MedHEval) and extract it in your data path.
 
 ### Required Models and Weights
 
@@ -75,7 +69,7 @@ The following evaluation requires for MSCOCO 2014 dataset. Please download [here
 
 We present some examples of configuration parameters for max generated tokens = 64:
 
-#### Arguments for VASparse
+#### Arguments for MedVCD
 - `--mask_rate`: Visual token masking ratio (default: 0.5)
 - `--contrastive_rate`: Contrastive learning rate (default: 0.1)
 - `--sparse_kv_cache_rate`: Sparsity ratio for KV cache (default: 0.9)
@@ -272,16 +266,3 @@ This codebase is built upon the following repository: [HALC](https://github.com/
 
 We thank all the authors for their valuable contributions.
 
-#### Citation
-```
-@misc{zhuang2025vasparseefficientvisualhallucination,
-      title={VASparse: Towards Efficient Visual Hallucination Mitigation via Visual-Aware Token Sparsification}, 
-      author={Xianwei Zhuang and Zhihong Zhu and Yuxin Xie and Liming Liang and Yuexian Zou},
-      year={2025},
-      eprint={2501.06553},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2501.06553}, 
-}
-```
->>>>>>> cdda2dc (Initial commit)
