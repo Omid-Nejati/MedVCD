@@ -17,7 +17,7 @@ To install, run the following commands to install the required packages:
 
 ```
 conda env create -f environment.yml
-conda activate vasparse
+conda activate medvcd
 ```
 
 We employ [Grounding DINO](https://github.com/IDEA-Research/GroundingDINO) as the external detector to ground hallucinatory objects. To install GroundingDINO with CUDA, we simplify the installation process, where you can:
@@ -104,10 +104,10 @@ We present some examples of configuration parameters for max generated tokens = 
 Following [Evaluating Object Hallucination in Large Vision-Language Models](https://arxiv.org/pdf/2305.10355.pdf) and HALC, we used "Please describe this image in detail." as the prompt to query LVLM for captions of the `500` images randomly sampled from [COCO 2014 Val](https://cocodataset.org/#download) datast. Under root directory, run
 
 ```shell
-python3 run_scripts/caption_generation_patch_vasparse.py \
+python3 run_scripts/caption_generation_patch_medvcd.py \
     --model llava-1.5 \
     --data_path path/to/val2014/ \
-    -d vasparse_contrastive \
+    -d medvcd_contrastive \
     --max_new_tokens 64 \
     --num_samples 500 \
     --seed 1 \
@@ -120,10 +120,10 @@ python3 run_scripts/caption_generation_patch_vasparse.py \
 
 MiniGPT-4 and mPLUG-Owl2 can be executed using the following commands:
 ```shell
-python3 run_scripts/caption_generation_patch_vasparse_minigpt4.py \
+python3 run_scripts/caption_generation_patch_medvcd_minigpt4.py \
     --model minigpt4 \
     --data_path path/to/val2014/ \
-    -d vasparse_contrastive \
+    -d medvcd_contrastive \
     --max_new_tokens 64 \
     --num_samples 500 \
     --seed 1 \
@@ -131,10 +131,10 @@ python3 run_scripts/caption_generation_patch_vasparse_minigpt4.py \
     --output_dir path/to/output/ \
     --debugging 1
 
-python3 run_scripts/caption_generation_patch_vasparse_mplugowl2.py \
+python3 run_scripts/caption_generation_patch_medvcd_mplugowl2.py \
     --model mplug-owl2 \
     --data_path path/to/val2014/ \
-    -d vasparse_contrastive \
+    -d medvcd_contrastive \
     --max_new_tokens 64 \
     --num_samples 500 \
     --seed 1 \

@@ -29,7 +29,7 @@ exempt_word_list = ["image", "side", "background", "feature", "features", "cente
 add_word_list = ["sink", "microwave", "toaster", "puppy", "bottle", "table", "oven", 
                 "orange", "toothbrush", "cars"]
 
-class vasparse_assistant:
+class medvcd_assistant:
     def __init__(
         self,
         model=None,

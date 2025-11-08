@@ -170,7 +170,7 @@ def new_forward(
     next_decoder_cache = () if use_cache else None
 
 
-    if findings_kwargs and findings_kwargs.get('vasparse_outputs_base_layer', False):
+    if findings_kwargs and findings_kwargs.get('medvcd_outputs_base_layer', False):
         if findings_kwargs['base_contrastive_layer']==0:
             all_hidden_states += (hidden_states,)
             next_cache = next_decoder_cache if use_cache else None
@@ -221,7 +221,7 @@ def new_forward(
     for idx, decoder_layer in enumerate(self.layers):
         if output_hidden_states:
             all_hidden_states += (hidden_states,)
-        if findings_kwargs and findings_kwargs.get('vasparse_outputs_base_layer', False):
+        if findings_kwargs and findings_kwargs.get('medvcd_outputs_base_layer', False):
             if idx >= findings_kwargs['base_contrastive_layer']:
                 break
         if attention_mask !=None and hidden_states.shape[-2] != attention_mask.shape[-1]:
@@ -232,7 +232,7 @@ def new_forward(
                 attention_mask = None
 
         if idx in pruning_loc and len(pre_prompt_length_list) != 0 and hidden_states.shape[1] !=1:
-            assert B==1, "vasparse only support Batch == 1 in Prefilling"
+            assert B==1, "medvcd only support Batch == 1 in Prefilling"
             assert output_attentions == True
             layer_outputs = decoder_layer(
                     hidden_states = hidden_states,
@@ -460,7 +460,7 @@ def new_forward_mplug_owl2(
     next_decoder_cache = () if use_cache else None
 
 
-    if findings_kwargs and findings_kwargs.get('vasparse_outputs_base_layer', False):
+    if findings_kwargs and findings_kwargs.get('medvcd_outputs_base_layer', False):
         if findings_kwargs['base_contrastive_layer']==0:
             all_hidden_states += (hidden_states,)
             next_cache = next_decoder_cache if use_cache else None
@@ -511,7 +511,7 @@ def new_forward_mplug_owl2(
     for idx, decoder_layer in enumerate(self.layers):
         if output_hidden_states:
             all_hidden_states += (hidden_states,)
-        if findings_kwargs and findings_kwargs.get('vasparse_outputs_base_layer', False):
+        if findings_kwargs and findings_kwargs.get('medvcd_outputs_base_layer', False):
             if idx >= findings_kwargs['base_contrastive_layer']:
                 break
         if attention_mask !=None and hidden_states.shape[-2] != attention_mask.shape[-1]:
@@ -522,7 +522,7 @@ def new_forward_mplug_owl2(
                 attention_mask = None
 
         if idx in pruning_loc and len(pre_prompt_length_list) != 0 and hidden_states.shape[1] !=1:
-            assert B==1, "vasparse only support Batch == 1 in Prefilling"
+            assert B==1, "medvcd only support Batch == 1 in Prefilling"
             assert output_attentions == True
             layer_outputs = decoder_layer(
                     hidden_states = hidden_states,
@@ -764,7 +764,7 @@ def new_forward_single(
 
     layer_outputs= None
     if findings_kwargs and findings_kwargs.get('SparsePrefilling', False):
-        print("\033[41m!!!!! vasparse Pruning !!!!!!\033[0m")
+        print("\033[41m!!!!! medvcd Pruning !!!!!!\033[0m")
         pruning_loc = self.pruning_loc
     else:
         pruning_loc = []

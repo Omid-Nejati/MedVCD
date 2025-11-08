@@ -16,7 +16,7 @@ import time
 import gc
 from copy import deepcopy
 
-from minigpt4.sparse.utils import batch_index_select, cluster_and_merge, attn_postprocess_rank, attn_postprocess_rank_vasparse, process_kv_cache, attn_postprocess_rank_vasparse_visual, process_kv_cache_shared
+from minigpt4.sparse.utils import batch_index_select, cluster_and_merge, attn_postprocess_rank, attn_postprocess_rank_medvcd, process_kv_cache, attn_postprocess_rank_medvcd_visual, process_kv_cache_shared
 
 
 from transformers import (
@@ -147,7 +147,7 @@ def _update_model_kwargs_for_generation(
 
     return model_kwargs
 
-def _update_model_kwargs_for_vasparse_contrastive_decoding(
+def _update_model_kwargs_for_medvcd_contrastive_decoding(
     self,
     outputs: ModelOutput,
     new_past_key_values, 
@@ -336,7 +336,7 @@ def relative_top_filter(
     return scores_normalized
 
 
-def vasparse_search_contrastive_decoding(
+def medvcd_search_contrastive_decoding(
     self,
     input_ids: torch.LongTensor,
     beam_scorer: BeamScorer,
@@ -542,8 +542,8 @@ def vasparse_search_contrastive_decoding(
     info_dict = {}
     
 
-    assert findings_kwargs is not None and findings_kwargs.get('vasparse_assistant_helper', False)
-    vasparse_helper = findings_kwargs['vasparse_assistant_helper']
+    assert findings_kwargs is not None and findings_kwargs.get('medvcd_assistant_helper', False)
+    medvcd_helper = findings_kwargs['medvcd_assistant_helper']
     beam_size = findings_kwargs['beam_size']
     beam_last_word_flag = [None] * beam_size
     beam_current_word = [None] * beam_size
@@ -564,14 +564,14 @@ def vasparse_search_contrastive_decoding(
             if this_peer_finished_flag.item() == 0.0:
                 break
 
-        batch_process_vasparse_size = input_ids.shape[0]
+        batch_process_medvcd_size = input_ids.shape[0]
         if not model_kwargs.get('past_key_values', False) and not shared_policy:
             all_dict_outputs = []
             all_outputs = []
 
-            for batch_idx in range(batch_process_vasparse_size):
+            for batch_idx in range(batch_process_medvcd_size):
                 single_input_ids = input_ids[batch_idx].unsqueeze(0)
-                single_model_kwargs = {k: (v[batch_idx].unsqueeze(0) if isinstance(v, torch.Tensor) and v.shape[0] == batch_process_vasparse_size else v) 
+                single_model_kwargs = {k: (v[batch_idx].unsqueeze(0) if isinstance(v, torch.Tensor) and v.shape[0] == batch_process_medvcd_size else v) 
                                     for k, v in model_kwargs.items()}
 
                 model_inputs = self.prepare_inputs_for_generation(single_input_ids, **single_model_kwargs)
@@ -603,9 +603,9 @@ def vasparse_search_contrastive_decoding(
                 all_dict_outputs = []
                 all_outputs = []
 
-                for batch_idx in range(batch_process_vasparse_size):
+                for batch_idx in range(batch_process_medvcd_size):
                     single_input_ids = input_ids[batch_idx].unsqueeze(0)
-                    single_model_kwargs = {k: (v[batch_idx].unsqueeze(0) if isinstance(v, torch.Tensor) and v.shape[0] == batch_process_vasparse_size else v) 
+                    single_model_kwargs = {k: (v[batch_idx].unsqueeze(0) if isinstance(v, torch.Tensor) and v.shape[0] == batch_process_medvcd_size else v) 
                                         for k, v in model_kwargs.items()}
 
                     model_inputs = self.prepare_inputs_for_generation(single_input_ids, **single_model_kwargs)
@@ -665,12 +665,12 @@ def vasparse_search_contrastive_decoding(
             sparse_ratios = []
             softmax_normalized_difference_list = []
             for bs in range(next_token_logits.shape[0]):
-                beam_last_word_flag[bs] = vasparse_helper.check_word_complete(beam_next_tokens_new[:, None][bs][:, None])
+                beam_last_word_flag[bs] = medvcd_helper.check_word_complete(beam_next_tokens_new[:, None][bs][:, None])
                 if beam_last_word_flag[bs]:
-                    entity = vasparse_helper.get_last_word(beam_next_tokens_new[bs])
+                    entity = medvcd_helper.get_last_word(beam_next_tokens_new[bs])
                     beam_current_word[bs] = entity
 
-                    embeds_list, detect_info = vasparse_helper.visual_aware_region_embedding(entity)
+                    embeds_list, detect_info = medvcd_helper.visual_aware_region_embedding(entity)
 
                     if detect_info['status'] == 'not-detected':
                         sparse_ratios.append(1)
@@ -696,7 +696,7 @@ def vasparse_search_contrastive_decoding(
 
                     attn_logits = full_outputs['attentions'][layer_i].clone().detach() # 实际上就是注意力weight, output_attentions=True torch.Size([2, 32, 623, 623])
 
-                    pred_score_vis, s_flag, relation_vis_text = attn_postprocess_rank_vasparse_visual(attn_logits, v_token_start, v_token_num, \
+                    pred_score_vis, s_flag, relation_vis_text = attn_postprocess_rank_medvcd_visual(attn_logits, v_token_start, v_token_num, \
                         text_token_start, self.model.t_token_idx, sparse_ratio=mask_rate, scale=13.5, bias=0.0) # B, L_v
                     
                     L_input = attn_logits.shape[-1]
@@ -750,35 +750,35 @@ def vasparse_search_contrastive_decoding(
                 if shared_policy:
                     sparse_key_values = process_kv_cache_shared(full_outputs['past_key_values'], policy_list)
 
-                    vasparse_key_values = replace_kv_prefix_shared(outputs['past_key_values'], sparse_key_values, prefilling_prompt_len_list)
+                    medvcd_key_values = replace_kv_prefix_shared(outputs['past_key_values'], sparse_key_values, prefilling_prompt_len_list)
 
-                    vasparse_model_kwargs = self._update_model_kwargs_for_vasparse_contrastive_decoding(outputs, vasparse_key_values, model_kwargs)
+                    medvcd_model_kwargs = self._update_model_kwargs_for_medvcd_contrastive_decoding(outputs, medvcd_key_values, model_kwargs)
                     
-                    vasparse_model_inputs = self.prepare_inputs_for_generation(input_ids, **vasparse_model_kwargs)
+                    medvcd_model_inputs = self.prepare_inputs_for_generation(input_ids, **medvcd_model_kwargs)
                 else:
                     sparse_key_values = process_kv_cache(full_outputs['past_key_values'], policy_list)
 
-                    vasparse_key_values = replace_kv_prefix(outputs['past_key_values'], sparse_key_values, prefilling_prompt_len_list)
+                    medvcd_key_values = replace_kv_prefix(outputs['past_key_values'], sparse_key_values, prefilling_prompt_len_list)
 
-                    vasparse_model_kwargs = self._update_model_kwargs_for_vasparse_contrastive_decoding(outputs, vasparse_key_values, model_kwargs)
+                    medvcd_model_kwargs = self._update_model_kwargs_for_medvcd_contrastive_decoding(outputs, medvcd_key_values, model_kwargs)
                     
-                    vasparse_model_inputs = self.prepare_inputs_for_generation(input_ids, **vasparse_model_kwargs)
+                    medvcd_model_inputs = self.prepare_inputs_for_generation(input_ids, **medvcd_model_kwargs)
 
-                findings_kwargs['vasparse_outputs_base_layer'] = True
+                findings_kwargs['medvcd_outputs_base_layer'] = True
                 findings_kwargs['base_contrastive_layer'] = base_contrastive_layer
                 sparse_early_exit_layers = [base_contrastive_layer]
-                vasparse_dict_outputs, vasparse_outputs = self(
-                    **vasparse_model_inputs,
+                medvcd_dict_outputs, medvcd_outputs = self(
+                    **medvcd_model_inputs,
                     return_dict=True,
                     output_attentions=output_attentions,
                     output_hidden_states=output_hidden_states,
                     early_exit_layers=sparse_early_exit_layers,
                     findings_kwargs = findings_kwargs,
                 )
-                findings_kwargs['vasparse_outputs_base_layer'] = False
+                findings_kwargs['medvcd_outputs_base_layer'] = False
 
 
-                ag_final_logits = vasparse_dict_outputs[base_contrastive_layer][:, -1, :]
+                ag_final_logits = medvcd_dict_outputs[base_contrastive_layer][:, -1, :]
 
             if  base_layer_not_sure:
                 base_logits = dict_outputs[base_layer][:, -1, :]

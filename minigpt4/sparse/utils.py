@@ -76,7 +76,7 @@ def batch_attn_postprocess_rank(self_attn_weights, v_token_start, v_token_num, t
     return mask, s_flag, relation_vis_text
 
 
-def attn_postprocess_rank_vasparse(self_attn_weights, v_token_start, v_token_num, text_token_start, t_token_idx, scale, bias, sparse_ratio=0.75):
+def attn_postprocess_rank_medvcd(self_attn_weights, v_token_start, v_token_num, text_token_start, t_token_idx, scale, bias, sparse_ratio=0.75):
     '''
     self_attn_weights: [B, H, L, L]
     '''
@@ -97,7 +97,7 @@ def attn_postprocess_rank_vasparse(self_attn_weights, v_token_start, v_token_num
 
     return mask, s_flag, relation_vis_text
 
-def attn_postprocess_rank_vasparse_visual(self_attn_weights, v_token_start, v_token_num, text_token_start, t_token_idx, scale, bias, sparse_ratio=0.75, W=None, P=None, λ=1):
+def attn_postprocess_rank_medvcd_visual(self_attn_weights, v_token_start, v_token_num, text_token_start, t_token_idx, scale, bias, sparse_ratio=0.75, W=None, P=None, λ=1):
     '''
     self_attn_weights: [B, H, L, L]
     '''

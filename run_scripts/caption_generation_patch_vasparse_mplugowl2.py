@@ -36,14 +36,14 @@ from decoder_zoo.HALC.context_density.halc import halc_assistant
 from decoder_zoo.VCD.vcd_utils.vcd_add_noise import add_diffusion_noise
 from decoder_zoo.Greedy.greedy_decoding import greedy_search
 # from decoder_zoo.Greedy.patching_generate import generate
-from decoder_zoo.VASparse.patching_generate import generate #vasparse_decoding
-from decoder_zoo.VASparse.vasparse_decoding import vasparse_search_decoding, _update_model_kwargs_for_vasparse_contrastive_decoding, vasparse_search_contrastive_decoding
-from decoder_zoo.VASparse.vasparse_decoding import vasparse_search_greedy_decoding, vasparse_search_beam_decoding
+from decoder_zoo.VASparse.patching_generate import generate #medvcd_decoding
+from decoder_zoo.VASparse.medvcd_decoding import medvcd_search_decoding, _update_model_kwargs_for_medvcd_contrastive_decoding, medvcd_search_contrastive_decoding
+from decoder_zoo.VASparse.medvcd_decoding import medvcd_search_greedy_decoding, medvcd_search_beam_decoding
 
-from decoder_zoo.VASparse.vasparser import vasparse_assistant
+from decoder_zoo.VASparse.medvcdr import medvcd_assistant
 
 
-from decoder_zoo.VASparse.vasparse_decoding import vasparse_search_decoding
+from decoder_zoo.VASparse.medvcd_decoding import medvcd_search_decoding
 
 from pycocotools.coco import COCO
 from pycocoevalcap.eval import COCOEvalCap
@@ -309,7 +309,7 @@ valid_decoding_strategies = [
     "halc",
     "opera",
     "vcd",
-    "vasparse_contrastive"
+    "medvcd_contrastive"
 ]
 
 
@@ -333,7 +333,7 @@ halc_decoding = False
 vcd_decoding = False
 beam_search = False
 prefill_sparse =  False
-vasparse_contrastive_decoding = False
+medvcd_contrastive_decoding = False
 
 
 print("decoding_strategy", decoding_strategy)
@@ -350,8 +350,8 @@ elif decoding_strategy == "opera":
     opera_decoding = True
 elif decoding_strategy == "vcd":
     vcd_decoding = True
-elif decoding_strategy == 'vasparse_contrastive':
-    vasparse_contrastive_decoding = True
+elif decoding_strategy == 'medvcd_contrastive':
+    medvcd_contrastive_decoding = True
     prefill_sparse = True
 
 if prefill_sparse:
@@ -466,7 +466,7 @@ halc_params = {
     "box_threshold": box_threshold,
 }
 
-vasparse_assistant_helper = vasparse_assistant(
+medvcd_assistant_helper = medvcd_assistant(
     model,
     vis_processor=vis_processor,
     device=device,
@@ -530,7 +530,7 @@ for idx, img_id in tqdm(enumerate(range(len(img_files))), total=len(img_files)):
     candidate_premature_layers = lm_early_exit_layers[:-1]
     premature_layer_dist = {l: 0 for l in candidate_premature_layers}
 
-    vasparse_assistant_helper.update_input(img_path=image_path, input_prompt=qu)
+    medvcd_assistant_helper.update_input(img_path=image_path, input_prompt=qu)
 
     image_cd = None
 
@@ -551,12 +551,12 @@ for idx, img_id in tqdm(enumerate(range(len(img_files))), total=len(img_files)):
     def patching (model):
         setattr(model.model, "generate", generate.__get__(model.model))
 
-        if vasparse_contrastive_decoding:
-            from decoder_zoo.VASparse.patching_generate import generate as vcs_generation #vasparse_decoding
-            from decoder_zoo.VASparse.vasparse_decoding_mplugowl2 import  vasparse_search_contrastive_decoding as vasparse_decoding_mplugowl2
+        if medvcd_contrastive_decoding:
+            from decoder_zoo.VASparse.patching_generate import generate as vcs_generation #medvcd_decoding
+            from decoder_zoo.VASparse.medvcd_decoding_mplugowl2 import  medvcd_search_contrastive_decoding as medvcd_decoding_mplugowl2
             setattr(model.model, "generate", vcs_generation.__get__(model.model))
-            setattr(model.model, 'vasparse_search_contrastive_decoding', vasparse_decoding_mplugowl2.__get__(model.model)) #vasparse_decoding
-            setattr(model.model, '_update_model_kwargs_for_vasparse_contrastive_decoding', _update_model_kwargs_for_vasparse_contrastive_decoding.__get__(model.model)) #vasparse_decoding
+            setattr(model.model, 'medvcd_search_contrastive_decoding', medvcd_decoding_mplugowl2.__get__(model.model)) #medvcd_decoding
+            setattr(model.model, '_update_model_kwargs_for_medvcd_contrastive_decoding', _update_model_kwargs_for_medvcd_contrastive_decoding.__get__(model.model)) #medvcd_decoding
 
     if prefill_sparse:
         llamamodel_patching_mplug_owl2(model, model_config)
@@ -580,9 +580,9 @@ for idx, img_id in tqdm(enumerate(range(len(img_files))), total=len(img_files)):
     findings_kwargs['prompt_length_image_text'] = 82
 
 
-    if vasparse_contrastive_decoding:
-        findings_kwargs['vasparse_contrastive_decoding'] = True #vasparse_decoding
-        findings_kwargs['vasparse_assistant_helper'] = vasparse_assistant_helper
+    if medvcd_contrastive_decoding:
+        findings_kwargs['medvcd_contrastive_decoding'] = True #medvcd_decoding
+        findings_kwargs['medvcd_assistant_helper'] = medvcd_assistant_helper
         findings_kwargs['SparsePrefilling'] = True
         findings_kwargs['beam_size'] = num_beams
 
@@ -604,7 +604,7 @@ for idx, img_id in tqdm(enumerate(range(len(img_files))), total=len(img_files)):
                 vcd_decoding=vcd_decoding,
                 halc_decoding=halc_decoding,
                 # HALC
-                halc_assistant=vasparse_assistant_helper,
+                halc_assistant=medvcd_assistant_helper,
                 # OPERA
                 key_position=None,
                 scale_factor=args.scale_factor,
@@ -657,7 +657,7 @@ for idx, img_id in tqdm(enumerate(range(len(img_files))), total=len(img_files)):
         json.dump(img_save, f)
         f.write("\n")
 
-findings_kwargs['vasparse_assistant_helper'] = True
+findings_kwargs['medvcd_assistant_helper'] = True
 
 config_captions_path = os.path.join(
     base_dir,

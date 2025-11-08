@@ -111,7 +111,7 @@ class MPLUGOWL2(BaseModel):
         images_cd=None,
         cd_alpha=1,
         cd_beta=0.1,
-        # vasparse
+        # medvcd
         findings_kwargs = None
 
     ):

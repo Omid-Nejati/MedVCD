@@ -189,7 +189,7 @@ def generate(
     LVLM_backbone=None,
     # GTHM's kwargs
     gthm_decoding: Optional[bool] = None,
-    # vasparse
+    # medvcd
     findings_kwargs: Optional[dict] = None,
     **kwargs,
 ) -> Union[GenerateOutput, torch.LongTensor]:
@@ -449,7 +449,7 @@ def generate(
         generation_config=generation_config, stopping_criteria=stopping_criteria
     )
 
-    if findings_kwargs and findings_kwargs.get('vasparse_contrastive_decoding', False):
+    if findings_kwargs and findings_kwargs.get('medvcd_contrastive_decoding', False):
         print("\033[41m!!!!! VASparse-Contrastive Decoding !!!!!!\033[0m")
         self.findings_kwargs = findings_kwargs
         # 11. run dola beam search
@@ -504,7 +504,7 @@ def generate(
 
 
         
-        return self.vasparse_search_contrastive_decoding(
+        return self.medvcd_search_contrastive_decoding(
             input_ids,
             beam_scorer=beam_scorer,
             logits_processor=logits_processor,
